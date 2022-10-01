@@ -1,16 +1,48 @@
-import spotipy
 import os
-from spotipy.oauth2 import SpotifyOAuth
-import ytmusicapi
 import json
+# import spotipy
+from ytmusicapi import YTMusic
+# from spotipy.oauth2 import SpotifyOAuth
 
-#Loading the JSON with user credentials for both services
+
+def getArtists(track):
+    artists = ""
+
+    for artist in track['artists']:
+        artists += artist['name']
+        artists += " "
+
+    return artists
+
+
+def getVideoIdForTrack(track):
+    query = track['title'] + " "
+    artists = getArtists(track)
+    query += artists
+
+    searchResults = ytmusic.search(
+        ignore_spelling=True, query=query, limit=int(1), filter="songs")
+
+    return searchResults[0]['videoId']
+
+
+ytmusic = YTMusic('headers_auth.json')
+playlist = ytmusic.get_playlist('PLKPa_-QZ5p9Xh9eqwR1op3YCpmJCXhdC1')
+
+for track in playlist['tracks']:
+    print(getVideoIdForTrack(track))
+
+
+# json_formatted_str = json.dumps(playlist['tracks'], indent=2)
+
+
+""" #Loading the JSON with user credentials for both services
 user_file = open("credentials2.json")
 user_data = json.load(user_file)
 user_file.close()
 
 
-#Setting the spotify side of things
+# Setting the spotify side of things
 spotify_client_id = user_data["user_credentials"][0]["spotify_client_id"]
 spotify_key = user_data["user_credentials"][0]["spotify_client_secret"]
 spotify_redirect_uri = user_data["user_credentials"][0]["spotify_redirect_uri"]
@@ -33,3 +65,4 @@ for idx, item in enumerate(results['items']):
     track = item['track']
     print(idx, track['artists'][0]['name'], " - ", track['name'])
 
+ """
