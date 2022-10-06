@@ -1,14 +1,14 @@
 import os
 import json
-# import spotipy
+import spotipy
 from ytmusicapi import YTMusic
-# from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyOAuth
 
 ytmusic = YTMusic('headers_auth.json')
 playlist = ytmusic.get_playlist('PLKPa_-QZ5p9Xh9eqwR1op3YCpmJCXhdC1')
 
 
-def getArtists(track):
+def getYtmArtists(track):
     artists = ""
 
     for artist in track['artists']:
@@ -20,7 +20,7 @@ def getArtists(track):
 
 def getYtmTrackInfo(track):
     query = track['title'] + " "
-    artists = getArtists(track)
+    artists = getYtmArtists(track)
     query += artists
 
     searchResults = ytmusic.search(
@@ -52,11 +52,17 @@ def getYtmTracks():
             print("no trackInfo")
 
 
-ytmTracks = getYtmTracks()
+# ytmTracks = getYtmTracks()
+
+##################################################################################################################################
+
+############################################################# SPOTIFY ############################################################
+
+##################################################################################################################################
 
 # json_formatted_str = json.dumps(playlist['tracks'], indent=2)
-""" #Loading the JSON with user credentials for both services
-user_file = open("credentials2.json")
+# Loading the JSON with user credentials for both services
+user_file = open("credentials.json")
 user_data = json.load(user_file)
 user_file.close()
 
@@ -69,20 +75,48 @@ spotify_playlist = user_data["user_credentials"][0]["spotify_playlist_key"]
 
 print(f"client id: {spotify_client_id} \n client secret: {spotify_key}")
 
-
 os.environ["SPOTIPY_CLIENT_ID"] = spotify_client_id
 os.environ["SPOTIPY_CLIENT_SECRET"] = spotify_key
 os.environ["SPOTIPY_REDIRECT_URI"] = spotify_redirect_uri
+script_scope = "user-library-read"
 
 spotipy.oauth2.SpotifyClientCredentials(
-    client_id=spotify_client_id, client_secret=spotify_key)
+    client_id=spotify_client_id, client_secret=spotify_key
+)
 
-script_scope = "user-library-read"
-user_session = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=script_scope))
+user_session = spotipy.Spotify(
+    auth_manager=SpotifyOAuth(
+        scope=script_scope
+    )
+)
 
-results = user_session.current_user_saved_tracks(limit=20)
-for idx, item in enumerate(results['items']):
+
+def getSpotifyArtists(track):
+    artists = ""
+
+    for artist in track['artists']:
+        artists += artist['name']
+        artists += " "
+
+    return artists
+
+
+def getSpotifyTrackInfo(track):
+    trackName = track['name']
+    trackArtists = getSpotifyArtists(track)
+
+    return dict(
+        id=track['id'],
+        artist=trackArtists,
+        title=trackName
+    )
+
+
+results = user_session.playlist(spotify_playlist)
+
+for idx, item in enumerate(results['tracks']['items']):
     track = item['track']
-    print(idx, track['artists'][0]['name'], " - ", track['name'])
 
- """
+    trackInfo = getSpotifyTrackInfo(track)
+
+    print(trackInfo)
