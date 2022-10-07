@@ -183,6 +183,10 @@ def getYtmTrackId(track):
 
     return False
 
+def addToSpotify(trackId):
+    spotify.playlist_add_items(playlist_id=spotify_playlist, items=trackId)
+
+
 
 def run():
     ytmTracks = getYtmTracks()
