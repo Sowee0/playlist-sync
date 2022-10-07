@@ -47,19 +47,16 @@ def getYtmTracks():
         trackInfo = getYtmTrackInfo(track)
 
         if trackInfo:
-            print(trackInfo)
-        else:
-            print("no trackInfo")
+            tracks.append(trackInfo)
 
-
-# ytmTracks = getYtmTracks()
+    return tracks
 
 ##################################################################################################################################
 
 ############################################################# SPOTIFY ############################################################
 
-##################################################################################################################################
 
+##################################################################################################################################
 # json_formatted_str = json.dumps(playlist['tracks'], indent=2)
 # Loading the JSON with user credentials for both services
 user_file = open("credentials.json")
@@ -112,11 +109,23 @@ def getSpotifyTrackInfo(track):
     )
 
 
-results = user_session.playlist(spotify_playlist)
+def getSpotifyTracks():
+    results = user_session.playlist(spotify_playlist)
 
-for idx, item in enumerate(results['tracks']['items']):
-    track = item['track']
+    tracks = []
 
-    trackInfo = getSpotifyTrackInfo(track)
+    for idx, item in enumerate(results['tracks']['items']):
+        track = item['track']
 
-    print(trackInfo)
+        trackInfo = getSpotifyTrackInfo(track)
+
+        tracks.append(trackInfo)
+
+    return tracks
+
+
+ytmTracks = getYtmTracks()
+spotifyTracks = getSpotifyTracks()
+
+print(ytmTracks)
+print(spotifyTracks)
