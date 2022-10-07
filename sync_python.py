@@ -196,24 +196,30 @@ def run():
     spotifyTracks = getSpotifyTracks()
     missingTracks = getMissingTracks(ytmTracks, spotifyTracks)
 
-    addToSpotify = []
-    addToYtm = []
+    newTracksSpotify = []
+    newTracksYtm = []
 
     for track in missingTracks:
-        if track['service'] == 'ytm':
+        if track['service'] == 'spotify':
             trackId = getSpotifyTrackId(track)
 
             if trackId:
-                addToSpotify.append(trackId)
+                newTracksSpotify.append(trackId)
 
-        if track['service'] == 'spotify':
+        if track['service'] == 'ytm':
             trackId = getYtmTrackId(track)
 
             if trackId:
-                addToYtm.append(trackId)
+                newTracksYtm.append(trackId)
 
-    print('addToSpotify', addToSpotify)
-    print('addToYtm', addToYtm)
+    if(len(addToSpotify)):
+        addToSpotify(newTracksSpotify)
+
+    if(len(addToYtm)):
+        addToYtm(newTracksYtm)
+
+    print(f"Added to spotify: {newTracksSpotify}")
+    print(f"Added to ytm: {newTracksYtm}")
 
 
 run()
