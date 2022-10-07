@@ -1,7 +1,9 @@
 import os
 import json
+from re import search
 import spotipy
 from ytmusicapi import YTMusic
+from difflib import SequenceMatcher
 from spotipy.oauth2 import SpotifyOAuth
 
 ytmusic = YTMusic('headers_auth.json')
@@ -34,7 +36,8 @@ def getYtmTrackInfo(track):
         return dict(
             id=searchResults[0]['videoId'],
             artist=artistName,
-            title=searchResults[0]['title']
+            title=searchResults[0]['title'],
+            service="ytm"
         )
 
     return False
@@ -81,7 +84,7 @@ spotipy.oauth2.SpotifyClientCredentials(
     client_id=spotify_client_id, client_secret=spotify_key
 )
 
-user_session = spotipy.Spotify(
+spotify = spotipy.Spotify(
     auth_manager=SpotifyOAuth(
         scope=script_scope
     )
@@ -105,16 +108,17 @@ def getSpotifyTrackInfo(track):
     return dict(
         id=track['id'],
         artist=trackArtists,
-        title=trackName
+        title=trackName,
+        service="spotify"
     )
 
 
 def getSpotifyTracks():
-    results = user_session.playlist(spotify_playlist)
+    results = spotify.playlist(spotify_playlist)
 
     tracks = []
 
-    for idx, item in enumerate(results['tracks']['items']):
+    for _, item in enumerate(results['tracks']['items']):
         track = item['track']
 
         trackInfo = getSpotifyTrackInfo(track)
@@ -124,8 +128,85 @@ def getSpotifyTracks():
     return tracks
 
 
-ytmTracks = getYtmTracks()
-spotifyTracks = getSpotifyTracks()
+def similarStrings(a, b):
+    return SequenceMatcher(None, a, b).ratio() >= 0.8
 
-print(ytmTracks)
-print(spotifyTracks)
+
+def hasSimilarInOtherList(trackName, trackList):
+    hasSimilar = False
+
+    for track in trackList:
+        if similarStrings(track['title'], trackName):
+            hasSimilar = True
+
+    return hasSimilar
+
+
+def getMissingTracks(ytmTracks, spotifyTracks):
+    missingTracks = []
+
+    for track in ytmTracks:
+        if not hasSimilarInOtherList(track['title'], spotifyTracks):
+            missingTracks.append(track)
+
+    for track in spotifyTracks:
+        if not hasSimilarInOtherList(track['title'], ytmTracks):
+            missingTracks.append(track)
+
+    return missingTracks
+
+
+def getSpotifyTrackId(track):
+    spotifyTrackId = False
+
+    searchResult = spotify.search(
+        q="artist:"+track['artist']+" track:"+track['title'], limit=1)
+
+    if searchResult['tracks'] and len(searchResult['tracks']['items']) > 0:
+        spotifyTrackId = searchResult['tracks']['items'][0]['id']
+
+    return spotifyTrackId
+
+
+def getYtmTrackId(track):
+    query = track['title'] + " " + track['artist']
+
+    searchResults = ytmusic.search(
+        ignore_spelling=True, query=query, limit=int(1), filter="songs")
+
+    if len(searchResults) >= 1 and 'videoId' in searchResults[0]:
+        artistName = ""
+        for artist in searchResults[0]['artists']:
+            artistName = artistName + " " + artist['name']
+
+        return searchResults[0]['videoId']
+
+    return False
+
+
+def run():
+    ytmTracks = getYtmTracks()
+    spotifyTracks = getSpotifyTracks()
+    missingTracks = getMissingTracks(ytmTracks, spotifyTracks)
+
+    addToSpotify = []
+    addToYtm = []
+
+    for track in missingTracks:
+        if track['service'] == 'ytm':
+            trackId = getSpotifyTrackId(track)
+
+            if trackId:
+                addToSpotify.append(trackId)
+
+        if track['service'] == 'spotify':
+            trackId = getYtmTrackId(track)
+
+            if trackId:
+                addToYtm.append(trackId)
+
+    print('addToSpotify', addToSpotify)
+    print('addToYtm', addToYtm)
+
+
+run()
