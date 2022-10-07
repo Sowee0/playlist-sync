@@ -73,6 +73,13 @@ spotify_key = user_data["user_credentials"][0]["spotify_client_secret"]
 spotify_redirect_uri = user_data["user_credentials"][0]["spotify_redirect_uri"]
 spotify_playlist = user_data["user_credentials"][0]["spotify_playlist_key"]
 
+#Setting the ytm side of things
+ytm_client_id = user_data["user_credentials"][0]["ytm_client_id"]
+ytm_key = user_data["user_credentials"][0]["ytm_client_secret"]
+ytm_redirect_uri = user_data["user_credentials"][0]["ytm_redirect_uri"]
+ytm_playlist = user_data["user_credentials"][0]["ytm_playlist_key"]
+
+
 print(f"client id: {spotify_client_id} \n client secret: {spotify_key}")
 
 os.environ["SPOTIPY_CLIENT_ID"] = spotify_client_id
