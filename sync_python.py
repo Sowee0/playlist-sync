@@ -183,8 +183,11 @@ def getYtmTrackId(track):
 
     return False
 
-def addToSpotify(trackId):
-    spotify.playlist_add_items(playlist_id=spotify_playlist, items=trackId)
+def addToSpotify(tracks):
+    spotify.playlist_add_items(playlist_id=spotify_playlist, items=tracks)
+
+def addToYtm(tracks):
+    YTMusic.add_playlist_items(playlistId=ytm_playlist, videoIds=tracks)
 
 
 
